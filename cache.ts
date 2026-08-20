@@ -1,11 +1,16 @@
+/**
+ * A cache in front of a slow origin.
+ *
+ * The plumbing is settled: what a key is, how the origin is called, and what
+ * the caller does with a miss. `get` is the part with a decision in it.
+ */
+
 export interface Origin {
   fetch(key: string): Promise<string>;
 }
 
-type Entry = { value: string; expires: number };
-
 export class Cache {
-  private entries = new Map<string, Entry>();
+  private entries = new Map<string, string>();
 
   private origin: Origin;
   private capacity: number;
@@ -22,15 +27,8 @@ export class Cache {
     this.now = now;
   }
 
-  async get(key: string): Promise<string> {
-    const hit = this.entries.get(key);
-    if (hit && hit.expires > this.now()) {
-      return hit.value;
-    }
-
-    // Miss, or stale. Go to the origin and remember what it said.
-    const value = await this.origin.fetch(key);
-    this.entries.set(key, { value, expires: this.now() + this.ttlMs });
-    return value;
+  /** The value for this key, from the cache if it is there and still good. */
+  async get(_key: string): Promise<string> {
+    throw new Error('not implemented');
   }
 }
